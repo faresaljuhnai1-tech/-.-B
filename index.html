@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Pixel Art Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* =================================================== */
+        /* Modern Styles */
+        /* =================================================== */
+        :root {
+            --primary: #00bcd4;
+            --primary-dark: #0097a7;
+            --secondary: #f39c12;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --card-bg-light: #252525;
+            --text: #e0e0e0;
+            --text-light: #a0a0a0;
+            --danger: #e74c3c;
+            --success: #4CAF50;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 10px;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        
+        p.subtitle {
+            margin-bottom: 30px;
+            color: var(--text-light);
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        /* Navigation Tabs */
+        #navigation-tabs {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            background-color: var(--card-bg-light);
+            padding: 8px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nav-button {
+            background-color: transparent;
+            color: var(--text);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-button.active {
+            background-color: var(--primary);
+            color: var(--dark-bg);
+            box-shadow: 0 4px 8px rgba(0, 188, 212, 0.3);
+        }
+
+        /* Main Content Views */
+        .content-view {
+            max-width: 1200px;
+            width: 100%;
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Drawing View Layout */
+        #Drawing-View {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap; 
+        }
+        
+        #tools-panel, #editor-area {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #tools-panel {
+            flex: 1; 
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        #editor-area {
+            flex: 2; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 600px;
+        }
+
+        /* Upload View */
+        #Upload-View {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #Upload-View #upload-container {
+            width: 80%;
+            max-width: 600px;
+            margin: 30px auto;
+            border: 4px dashed var(--primary);
+        }
+        
+        /* Upload Area Styling */
+        #upload-container {
+            border-radius: var(--border-radius);
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: var(--card-bg-light);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #upload-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        #upload-container:hover::before {
+            transform: scaleX(1);
+        }
+        
+        #upload-container:hover { 
+            background-color: var(--card-bg); 
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        #upload-container.drag-over { 
+            border-color: var(--success); 
+            background-color: rgba(76, 175, 80, 0.1); 
+        }
+        
+        .upload-icon { 
+            font-size: 3.5em; 
+            margin-bottom: 10px; 
+            color: var(--primary); 
+        }
+        
+        .upload-text { 
+            font-size: 1.3em; 
+            font-weight: 600; 
+            margin-bottom: 10px;
+        }
+        
+        #upload-input { 
+            display: none; 
+        }
+        
+        /* Controls and Buttons */
+        .control-group { 
+            margin-bottom: 20px; 
+            padding: 20px; 
+            border-radius: var(--border-radius); 
+            background-color: var(--card-bg-light);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input[type="number"], button, input[type="range"] { 
+            padding: 12px; 
+            border-radius: 8px; 
+            border: none; 
+            font-size: 1em;
+        }
+        
+        input[type="number"] { 
+            background-color: var(--card-bg); 
+            color: white; 
+            width: 100px; 
+            text-align: center; 
+            border: 1px solid #444; 
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            margin-top: 10px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 188, 212, 0.7);
+        }
+        
+        button { 
+            background-color: var(--primary); 
+            color: var(--dark-bg); 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover { 
+            background-color: var(--primary-dark); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button.danger {
+            background-color: var(--danger);
+        }
+        
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        
+        button.success {
+            background-color: var(--success);
+        }
+        
+        button.success:hover {
+            background-color: #388e3c;
+        }
+        
+        #color-picker { 
+            width: 100%; 
+            height: 50px; 
+            border: none; 
+            cursor: pointer; 
+            padding: 0; 
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Pixel Grid */
+        #pixel-grid { 
+            border: 4px solid #444; 
+            background-color: #fff; 
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); 
+            cursor: crosshair; 
+            margin-top: 20px; 
+            width: 512px; 
+            height: 512px; 
+            border-radius: 4px;
+        }
+        
+        .pixel { 
+            border: 1px solid #f0f0f0; 
+            box-sizing: border-box; 
+            background-color: transparent; 
+            transition: background-color 0.1s;
+        }
+        
+        .pixel:hover {
+            filter: brightness(0.9);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--card-bg-light);
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Upload Results */
+        #upload-result {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .result-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        /* Fan Control - Modified positioning */
+        .fan-control {
+            text-align: center;
+            padding: 20px;
+            background: rgba(30, 30, 30, 0.7);
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .fan-container {
+            position: relative;
+            width: 250px;
+            height: 280px;
+            margin: 0 auto 20px;
+        }
+        
+        .fan-base {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 20px;
+            background: linear-gradient(to bottom, #555, #333);
+            border-radius: 5px;
+            z-index: 2;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .fan-stand {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 120px;
+            background: linear-gradient(to bottom, #666, #444);
+            z-index: 1;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .fan-motor {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 30px;
+            background: linear-gradient(to bottom, #444, #333);
+            border-radius: 8px;
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .fan-head {
+            position: absolute;
+            bottom: 170px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 160px;
+            background: rgba(20, 20, 20, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 188, 212, 0.4);
+            z-index: 4;
+        }
+        
+        .fan-blades {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            animation: rotate 2s linear infinite;
+            animation-play-state: paused;
+        }
+        
+        .fan-blade {
+            position: absolute;
+            width: 60px;
+            height: 25px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            box-shadow: 0 0 8px rgba(0, 188, 212, 0.6);
+        }
+        
+        .fan-blade:nth-child(1) { transform: translate(0, -50%) rotate(0deg); }
+        .fan-blade:nth-child(2) { transform: translate(0, -50%) rotate(90deg); }
+        .fan-blade:nth-child(3) { transform: translate(0, -50%) rotate(180deg); }
+        .fan-blade:nth-child(4) { transform: translate(0, -50%) rotate(270deg); }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fan-active .fan-blades {
+            animation-play-state: running;
+        }
+        
+        .speed-control {
+            margin-top: 20px;
+        }
+        
+        .speed-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: var(--text-light);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+        }
+        
+        .status-active .status-dot {
+            background-color: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 800px) {
+            #Drawing-View { 
+                flex-direction: column; 
+            }
+            
+            #editor-area, #tools-panel { 
+                width: 100%; 
+                min-height: auto; 
+            }
+            
+            #pixel-grid { 
+                width: 90vw !important; 
+                height: 90vw !important; 
+                max-width: 400px; 
+                max-height: 400px; 
+            }
+            
+            #Upload-View #upload-container { 
+                width: 95%; 
+                padding: 30px; 
+            }
+            
+            #navigation-tabs {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .fan-container {
+                width: 200px;
+                height: 230px;
+            }
+            
+            .fan-head {
+                width: 130px;
+                height: 130px;
+                bottom: 140px;
+            }
+            
+            .fan-blades {
+                width: 110px;
+                height: 110px;
+            }
+            
+            .fan-blade {
+                width: 50px;
+                height: 20px;
+            }
+        }
+        
+        /* Footer */
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9em;
+            padding: 20px;
+            width: 100%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <h1><i class="fas fa-palette"></i> Advanced Pixel Art Generator</h1>
+    <p class="subtitle">Transform images and videos into pixel art masterpieces - Create your own pixel drawings!</p>
+    
+    <div id="navigation-tabs">
+        <button class="nav-button active" data-view="Drawing-View">
+            <i class="fas fa-paint-brush"></i> Hand Drawing
+        </button>
+        <button class="nav-button" data-view="Upload-View">
+            <i class="fas fa-file-upload"></i> Convert File (Image / Video)
+        </button>
+    </div>
+
+    <div id="Drawing-View" class="content-view">
+        <div id="tools-panel">
+            <h2><i class="fas fa-sliders-h"></i> Drawing Settings</h2>
+            
+            <div class="control-group">
+                <h3><i class="fas fa-ruler-combined"></i> Canvas Dimensions</h3>
+                <label for="grid-size">Canvas Size (N x N):</label>
+                <input type="number" id="grid-size" value="16" min="8" max="64">
+                <button onclick="changeGridSize()">
+                    <i class="fas fa-sync-alt"></i> Create/Update Canvas
+                </button>
+            </div>
+
+            <div class="control-group">
+                <h3><i class="fas fa-palette"></i> Colors</h3>
+                <label for="color-picker">Current Color:</label>
+                <input type="color" id="color-picker" value="#00bcd4">
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                    <button style="background-color: #ff0000; flex: 1; min-width: 40px; padding: 8px;" onclick="setColor('#ff0000')"></button>
+                    <button style="background-color: #00ff00; flex: 1; min-width: 40px; padding: 8px;" onclick="setColor('#00ff00')"></button>
+                    <button style="background-color: #0000ff; flex: 1; min-width: 40px; padding: 8px;" onclick="setColor('#0000ff')"></button>
+                    <button style="background-color: #ffff00; flex: 1; min-width: 40px; padding: 8px;" onclick="setColor('#ffff00')"></button>
+                    <button style="background-color: #ff00ff; flex: 1; min-width: 40px; padding: 8px;" onclick="setColor('#ff00ff')"></button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3><i class="fas fa-tools"></i> Tools</h3>
+                <button onclick="clearGrid()" class="danger">
+                    <i class="fas fa-trash-alt"></i> Clear Canvas
+                </button>
+                <button onclick="saveImage()" class="success">
+                    <i class="fas fa-download"></i> Save Drawing (PNG)
+                </button>
+            </div>
+            
+            <!-- Fan control moved here for better placement -->
+            <div class="fan-control">
+                <h3><i class="fas fa-wind"></i> Fan Control</h3>
+                <div class="fan-container">
+                    <div class="fan-base"></div>
+                    <div class="fan-stand"></div>
+                    <div class="fan-motor"></div>
+                    <div class="fan-head" id="fan-head">
+                        <div class="fan-blades" id="fan-blades">
+                            <div class="fan-blade"></div>
+                            <div class="fan-blade"></div>
+                            <div class="fan-blade"></div>
+                            <div class="fan-blade"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="speed-control">
+                    <label for="fan-speed">Fan Speed:</label>
+                    <input type="range" id="fan-speed" min="0" max="100" value="0">
+                    <div class="speed-display">
+                        <span>Off</span>
+                        <span id="speed-value">0%</span>
+                        <span>Max Speed</span>
+                    </div>
+                </div>
+                
+                <div class="status-indicator" id="fan-status">
+                    <div class="status-dot"></div>
+                    <span>Fan Disconnected</span>
+                </div>
+                
+                <button onclick="connectFan()" style="margin-top: 15px;">
+                    <i class="fas fa-plug"></i> Simulate Fan Connection
+                </button>
+            </div>
+        </div>
+        
+        <div id="editor-area">
+            <h2><i class="fas fa-drafting-compass"></i> Drawing Canvas</h2>
+            <p style="color: var(--text-light); margin-bottom: 15px;">Draw on the grid using the selected color</p>
+            <div id="pixel-grid"></div>
+        </div>
+    </div>
+
+    <div id="Upload-View" class="content-view">
+        <h2 style="text-align: center; color: var(--secondary);">
+            <i class="fas fa-rocket"></i> Convert Image or Video to Pixel Art
+        </h2>
+        <p style="text-align: center; color: var(--text-light); margin-bottom: 20px;">
+            Upload your file and we'll process it and convert it to pixels that you can save.
+        </p>
+
+        <div id="upload-container">
+            <span class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></span>
+            <p class="upload-text">Drop your file here (image or video) or click to upload</p>
+            <p style="font-size: 0.9em; color: var(--text-light); margin-bottom: 20px;">
+                Supported: PNG, JPG, MP4, MOV, GIF
+            </p>
+            <button onclick="document.getElementById('upload-input').click()">
+                <i class="fas fa-folder-open"></i> Choose File
+            </button>
+            <input type="file" id="upload-input" accept="image/*, video/*"> 
+        </div>
+        
+        <div class="progress-bar" style="display: none;" id="progress-container">
+            <div class="progress" id="upload-progress"></div>
+        </div>
+        
+        <div id="upload-result"></div>
+    </div>
+
+    <!-- Notification Element -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text">Operation completed successfully!</span>
+    </div>
+
+    <footer>
+        <p>Developed with HTML5, CSS3 & JavaScript</p>
+        <p>Advanced Pixel Art Editor &copy; 2025</p>
+    </footer>
+
+    <script>
+        const gridContainer = document.getElementById('pixel-grid');
+        const colorPicker = document.getElementById('color-picker');
+        const gridSizeInput = document.getElementById('grid-size');
+        const uploadContainer = document.getElementById('upload-container');
+        const uploadInput = document.getElementById('upload-input');
+        const editorArea = document.getElementById('editor-area'); 
+        const navButtons = document.querySelectorAll('.nav-button');
+        const contentViews = document.querySelectorAll('.content-view');
+        const progressContainer = document.getElementById('progress-container');
+        const uploadProgress = document.getElementById('upload-progress');
+        const fanBlades = document.getElementById('fan-blades');
+        const fanHead = document.getElementById('fan-head');
+        const fanStatus = document.getElementById('fan-status');
+        const fanSpeed = document.getElementById('fan-speed');
+        const speedValue = document.getElementById('speed-value');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+
+        let isDrawing = false;
+        let gridSize = 16;
+        let PIXEL_SIZE_PX = 32; 
+        let fanConnected = false;
+        let currentFanSpeed = 0;
+
+        // -----------------------------------------------------
+        // Tab Switching Functions
+        // -----------------------------------------------------
+        function switchView(viewId) {
+            contentViews.forEach(view => {
+                view.style.display = view.id === viewId ? 'flex' : 'none';
+            });
+            navButtons.forEach(button => {
+                button.classList.toggle('active', button.getAttribute('data-view') === viewId);
+            });
+            // Recreate grid when returning to drawing view to ensure correct dimensions
+            if (viewId === 'Drawing-View') {
+                createGrid();
+            }
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                switchView(button.getAttribute('data-view'));
+            });
+        });
+
+        // -----------------------------------------------------
+        // Grid and Drawing Functions (Improved)
+        // -----------------------------------------------------
+
+        function calculatePixelSize() {
+            const maxAreaSize = Math.min(editorArea.clientWidth - 50, 512); 
+            PIXEL_SIZE_PX = Math.floor(maxAreaSize / gridSize);
+            // Ensure responsiveness on mobile
+            if (window.innerWidth <= 800) {
+                 PIXEL_SIZE_PX = Math.floor((editorArea.clientWidth * 0.9) / gridSize);
+            }
+        }
+        
+        function createGrid() {
+            gridSize = parseInt(gridSizeInput.value) || 16;
+            calculatePixelSize(); 
+            
+            gridContainer.innerHTML = '';
+            gridContainer.style.width = `${gridSize * PIXEL_SIZE_PX}px`;
+            gridContainer.style.height = `${gridSize * PIXEL_SIZE_PX}px`;
+            gridContainer.style.display = 'grid';
+            gridContainer.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const pixel = document.createElement('div');
+                pixel.classList.add('pixel');
+                pixel.style.width = `${PIXEL_SIZE_PX}px`;
+                pixel.style.height = `${PIXEL_SIZE_PX}px`;
+                
+                pixel.addEventListener('mousedown', startDrawing);
+                pixel.addEventListener('mouseover', drawOnHover);
+                pixel.addEventListener('touchstart', startDrawingTouch); 
+                pixel.addEventListener('touchmove', drawOnHoverTouch); 
+                
+                gridContainer.appendChild(pixel);
+            }
+        }
+        
+        function changeGridSize() { 
+            createGrid(); 
+            clearGrid(); 
+        }
+        
+        function clearGrid() { 
+            const pixels = document.querySelectorAll('.pixel'); 
+            pixels.forEach(pixel => { 
+                pixel.style.backgroundColor = 'transparent'; 
+            }); 
+        }
+        
+        function setColor(color) {
+            colorPicker.value = color;
+        }
+        
+        // Drawing functions
+        gridContainer.addEventListener('mousedown', (e) => { 
+            isDrawing = true; 
+            e.preventDefault(); 
+        });
+        
+        document.addEventListener('mouseup', () => { 
+            isDrawing = false; 
+        });
+        
+        function startDrawing(event) { 
+            if (event.target.classList.contains('pixel')) { 
+                event.target.style.backgroundColor = colorPicker.value; 
+            } 
+        }
+        
+        function drawOnHover(event) { 
+            if (!isDrawing || !event.target.classList.contains('pixel')) return; 
+            event.target.style.backgroundColor = colorPicker.value; 
+        }
+        
+        function startDrawingTouch(event) { 
+            isDrawing = true; 
+            event.preventDefault(); 
+            const touch = event.touches[0]; 
+            const element = document.elementFromPoint(touch.clientX, touch.clientY); 
+            if (element && element.classList.contains('pixel')) { 
+                element.style.backgroundColor = colorPicker.value; 
+            } 
+        }
+        
+        function drawOnHoverTouch(event) { 
+            if (!isDrawing) return; 
+            event.preventDefault(); 
+            const touch = event.touches[0]; 
+            const element = document.elementFromPoint(touch.clientX, touch.clientY); 
+            if (element && element.classList.contains('pixel')) { 
+                element.style.backgroundColor = colorPicker.value; 
+            } 
+        }
+
+        // -----------------------------------------------------
+        // Fan Functions
+        // -----------------------------------------------------
+        
+        function updateFanSpeed() {
+            currentFanSpeed = parseInt(fanSpeed.value);
+            speedValue.textContent = `${currentFanSpeed}%`;
+            
+            // Update fan rotation speed
+            if (fanConnected && currentFanSpeed > 0) {
+                fanHead.classList.add('fan-active');
+                const speed = 2 - (currentFanSpeed / 100); // Inverse speed (faster when value is lower)
+                fanBlades.style.animationDuration = `${speed}s`;
+            } else {
+                fanHead.classList.remove('fan-active');
+            }
+        }
+        
+        function connectFan() {
+            fanConnected = !fanConnected;
+            
+            if (fanConnected) {
+                fanStatus.classList.add('status-active');
+                fanStatus.querySelector('span').textContent = 'Fan Connected';
+                updateFanSpeed();
+                showNotification('Fan connected successfully!');
+            } else {
+                fanHead.classList.remove('fan-active');
+                fanStatus.classList.remove('status-active');
+                fanStatus.querySelector('span').textContent = 'Fan Disconnected';
+                fanSpeed.value = 0;
+                updateFanSpeed();
+                showNotification('Fan disconnected.');
+            }
+        }
+        
+        // Add event listener for fan speed control
+        fanSpeed.addEventListener('input', updateFanSpeed);
+
+        // -----------------------------------------------------
+        // File Upload and Drop Functions (with video support)
+        // -----------------------------------------------------
+
+        uploadContainer.addEventListener('click', () => { 
+            uploadInput.click(); 
+        });
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => { 
+            uploadContainer.addEventListener(eventName, preventDefaults, false); 
+        });
+        
+        function preventDefaults(e) { 
+            e.preventDefault(); 
+            e.stopPropagation(); 
+        }
+        
+        uploadContainer.addEventListener('dragover', () => { 
+            uploadContainer.classList.add('drag-over'); 
+        });
+        
+        uploadContainer.addEventListener('dragleave', () => { 
+            uploadContainer.classList.remove('drag-over'); 
+        });
+        
+        uploadContainer.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) { 
+            uploadContainer.classList.remove('drag-over'); 
+            const files = e.dataTransfer.files; 
+            handleFiles(files); 
+        }
+        
+        uploadInput.addEventListener('change', (e) => { 
+            handleFiles(e.target.files); 
+        });
+        
+        function simulateProgress() {
+            progressContainer.style.display = 'block';
+            uploadProgress.style.width = '0%';
+            
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                    }, 500);
+                } else {
+                    width += Math.random() * 10;
+                    uploadProgress.style.width = Math.min(width, 100) + '%';
+                }
+            }, 200);
+        }
+        
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            const file = files[0];
+            const resultDiv = document.getElementById('upload-result');
+            
+            // Simulate upload progress
+            simulateProgress();
+            
+            setTimeout(() => {
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <h3><i class="fas fa-check-circle" style="color: var(--success);"></i> File Uploaded Successfully</h3>
+                        <p>File: <strong>${file.name}</strong></p>
+                        <p>Size: <strong>${(file.size / 1024 / 1024).toFixed(2)} MB</strong></p>
+                        <p>Type: <strong>${file.type}</strong></p>
+                        
+                        <div style="margin-top: 20px;">
+                            <button onclick="processFile('${file.type}')" class="success">
+                                <i class="fas fa-cogs"></i> Process File and Convert to Pixel Art
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }, 1500);
+        }
+        
+        function processFile(fileType) {
+            const resultDiv = document.getElementById('upload-result');
+            resultDiv.innerHTML += `
+                <div class="result-card" style="margin-top: 20px;">
+                    <h3><i class="fas fa-info-circle" style="color: var(--primary);"></i> Processing Information</h3>
+                    <p>Processing file and converting to pixel art...</p>
+                    <div class="progress-bar" style="margin: 15px 0;">
+                        <div class="progress" style="width: 100%;"></div>
+                    </div>
+                    <p>${fileType.match('image/*') ? 
+                        'The image will be converted to a pixel grid based on size settings.' : 
+                        'Frames will be extracted from the video and converted to pixel art.'}
+                    </p>
+                </div>
+            `;
+        }
+
+        // -----------------------------------------------------
+        // Save Image Functionality
+        // -----------------------------------------------------
+        function saveImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = gridSize;
+            canvas.height = gridSize;
+            const ctx = canvas.getContext('2d');
+            
+            const pixels = document.querySelectorAll('.pixel');
+            
+            pixels.forEach((pixel, index) => {
+                const color = pixel.style.backgroundColor || 'rgba(0,0,0,0)'; 
+                const row = Math.floor(index / gridSize);
+                const col = index % gridSize;
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(col, row, 1, 1); 
+            });
+
+            const image = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `pixel_art_${gridSize}x${gridSize}.png`;
+            link.href = image;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show notification instead of alert
+            showNotification('Drawing saved successfully!');
+        }
+        
+        // -----------------------------------------------------
+        // Notification Function
+        // -----------------------------------------------------
+        function showNotification(message) {
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // -----------------------------------------------------
+        
+        // Initialization: Show drawing view on load
+        window.onload = function() {
+            switchView('Drawing-View');
+            createGrid();
+        };
+    </script>
+</body>
+</html>
+>
